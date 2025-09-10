@@ -12,6 +12,8 @@ class Organization extends Model
 {
     use HasFactory, Sluggable;
 
+    const TYPE_INDIVIDUAL = 'individual';
+    const TYPE_ORGANIZATION = 'organization';
     protected $fillable = [
         'name',
         'slug',
@@ -25,7 +27,6 @@ class Organization extends Model
         'owner_id',
         'is_active',
     ];
-
     protected $casts = [
         'is_active' => 'boolean',
         'created_at' => 'datetime',
@@ -40,13 +41,18 @@ class Organization extends Model
         return [
             'slug' => [
                 'source' => 'name',
+                'onUpdate' => true,
+                'separator' => '-',
+                'method' => null,
+                'maxLength' => null,
+                'maxLengthKeepWords' => true,
+                'slugEngineOptions' => [],
+                'reserved'=>null,
+                'unique' => true,
+                'includeTrashed' => false,
             ],
         ];
     }
-
-    const TYPE_INDIVIDUAL = 'individual';
-
-    const TYPE_ORGANIZATION = 'organization';
 
     public function workspace(): BelongsTo
     {

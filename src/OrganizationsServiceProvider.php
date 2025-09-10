@@ -32,7 +32,7 @@ class OrganizationsServiceProvider extends ServiceProvider
     {
         Route::group([
             'prefix' => config('organizations.route_prefix', 'api'),
-            'middleware' => config('organizations.route_middleware', ['auth:sanctum']),
+//            'middleware' => config('organizations.route_middleware', ['auth:sanctum']),
         ], function () {
             $this->loadRoutesFrom(__DIR__.'/../routes/organizations.php');
         });

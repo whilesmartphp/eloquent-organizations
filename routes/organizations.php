@@ -18,5 +18,9 @@ Route::get('/workspaces/{workspaceId}/organizations', [OrganizationController::c
 Route::post('/workspaces/{workspaceId}/organizations', [OrganizationController::class, 'store']);
 
 // Organization Management (standalone routes)
-Route::get('/organizations', [OrganizationController::class, 'index']);
-Route::post('/organizations', [OrganizationController::class, 'store']);
+Route::apiResource('/organizations', OrganizationController::class);
+
+// organization members
+Route::get('/organizations/{id}/members', [OrganizationController::class, 'getMembers']);
+Route::post('/organizations/{id}/members', [OrganizationController::class, 'addMember']);
+Route::delete('/organizations/{id}/members/{member_id}', [OrganizationController::class, 'removeMember']);
