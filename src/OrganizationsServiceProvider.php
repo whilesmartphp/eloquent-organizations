@@ -26,13 +26,16 @@ class OrganizationsServiceProvider extends ServiceProvider
         if (config('organizations.register_routes', true)) {
             $this->registerRoutes();
         }
+        $this->publishes([
+            __DIR__.'/Interfaces' => app_path('Http/Interfaces'),
+        ], 'organizations-docs');
     }
 
     protected function registerRoutes(): void
     {
         Route::group([
             'prefix' => config('organizations.route_prefix', 'api'),
-//            'middleware' => config('organizations.route_middleware', ['auth:sanctum']),
+            'middleware' => config('organizations.route_middleware', ['auth:sanctum']),
         ], function () {
             $this->loadRoutesFrom(__DIR__.'/../routes/organizations.php');
         });

@@ -8,10 +8,11 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Whilesmart\Organizations\Events\OrganizationCreatedEvent;
 use Whilesmart\Organizations\Events\OrganizationUpdatedEvent;
+use Whilesmart\Organizations\Interfaces\OrganizationControllerInterface;
 use Whilesmart\Organizations\Models\Organization;
 use Whilesmart\Roles\Models\RoleAssignment;
 
-class OrganizationController extends ApiController
+class OrganizationController extends ApiController implements OrganizationControllerInterface
 {
     public function index(Request $request, ?string $workspaceId = null): JsonResponse
     {
@@ -94,16 +95,12 @@ class OrganizationController extends ApiController
         $organization = Organization::create($organizationData);
         // assign this user the owner role
 
-        ///
-
-//        $organization = $user->organizations()->create($data);
-        $user->assignRole("owner", "organization", $organization->id);
+         $user->assignRole("owner", "organization", $organization->id);
 
         $organization->refresh();
         OrganizationCreatedEvent::dispatch($organization);
 
         return $this->success($organization, 'Organization Created', 201);
-        /// ///
 
     }
 
@@ -221,7 +218,7 @@ class OrganizationController extends ApiController
 
                     if ($member->hasRole('member', 'organization', $id) || $user->hasRole('admin', 'organization', $id)) {
                         // ensure user is not trying to remove himself
-                        if ($user->id == $request->get('user_id')) {
+                        if ($user->id == $member->id) {
                             return $this->failure(message: "You can't remove yourself");
                         }
 

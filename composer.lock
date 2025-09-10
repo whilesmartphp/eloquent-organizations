@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "611786871b568e5f71fd8c65061a9954",
+    "content-hash": "1a5024ab0db769e3bc7083776526c01d",
     "packages": [
         {
             "name": "brick/math",
@@ -6107,10 +6107,16 @@
         {
             "name": "whilesmart/eloquent-roles",
             "version": "dev-main",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/whilesmartphp/eloquent-roles.git",
+                "reference": "460d92f92d00e5a6ad8ebfd0fa2ce12888556862"
+            },
             "dist": {
-                "type": "path",
-                "url": "/Users/kofimokome/PhpStormProjects/eloquent-roles",
-                "reference": "7a5dd593f74ebb3849d2cb3c59bb6adacc306472"
+                "type": "zip",
+                "url": "https://api.github.com/repos/whilesmartphp/eloquent-roles/zipball/460d92f92d00e5a6ad8ebfd0fa2ce12888556862",
+                "reference": "460d92f92d00e5a6ad8ebfd0fa2ce12888556862",
+                "shasum": ""
             },
             "require": {
                 "laravel/framework": "^11.0|^12.0",
@@ -6120,6 +6126,7 @@
                 "orchestra/testbench": "^9.0|^10.0",
                 "phpunit/phpunit": "^10.0|^11.0"
             },
+            "default-branch": true,
             "type": "library",
             "extra": {
                 "laravel": {
@@ -6133,11 +6140,7 @@
                     "Whilesmart\\Roles\\": "src/"
                 }
             },
-            "autoload-dev": {
-                "psr-4": {
-                    "Whilesmart\\Roles\\Tests\\": "tests/"
-                }
-            },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
@@ -6155,10 +6158,11 @@
                 "rbac",
                 "roles"
             ],
-            "transport-options": {
-                "symlink": true,
-                "relative": false
-            }
+            "support": {
+                "issues": "https://github.com/whilesmartphp/eloquent-roles/issues",
+                "source": "https://github.com/whilesmartphp/eloquent-roles/tree/main"
+            },
+            "time": "2025-08-23T21:52:57+00:00"
         },
         {
             "name": "zircote/swagger-php",
@@ -7764,16 +7768,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "11.5.36",
+            "version": "11.5.39",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "264a87c7ef68b1ab9af7172357740dc266df5957"
+                "reference": "ad5597f79d8489d2870073ac0bc0dd0ad1fa9931"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/264a87c7ef68b1ab9af7172357740dc266df5957",
-                "reference": "264a87c7ef68b1ab9af7172357740dc266df5957",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/ad5597f79d8489d2870073ac0bc0dd0ad1fa9931",
+                "reference": "ad5597f79d8489d2870073ac0bc0dd0ad1fa9931",
                 "shasum": ""
             },
             "require": {
@@ -7845,7 +7849,7 @@
             "support": {
                 "issues": "https://github.com/sebastianbergmann/phpunit/issues",
                 "security": "https://github.com/sebastianbergmann/phpunit/security/policy",
-                "source": "https://github.com/sebastianbergmann/phpunit/tree/11.5.36"
+                "source": "https://github.com/sebastianbergmann/phpunit/tree/11.5.39"
             },
             "funding": [
                 {
@@ -7869,7 +7873,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-09-03T06:24:17+00:00"
+            "time": "2025-09-14T06:20:41+00:00"
         },
         {
             "name": "psy/psysh",
