@@ -26,6 +26,9 @@ class OrganizationsServiceProvider extends ServiceProvider
         if (config('organizations.register_routes', true)) {
             $this->registerRoutes();
         }
+        $this->publishes([
+            __DIR__.'/Interfaces' => app_path('Http/Interfaces'),
+        ], 'organizations-docs');
     }
 
     protected function registerRoutes(): void
