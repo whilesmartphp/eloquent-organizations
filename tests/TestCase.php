@@ -51,6 +51,7 @@ class TestCase extends \Orchestra\Testbench\TestCase
     protected function createOrganization(User $owner, array $attributes = []): Organization
     {
         $name = Factory::create()->unique()->name;
+
         return Organization::create(array_merge([
             'name' => $name,
             'type' => 'organization',
@@ -134,7 +135,7 @@ class TestCase extends \Orchestra\Testbench\TestCase
         $user = $this->createUser();
         $this->actingAs($user);
 
-        $response = $this->getJson("/organizations/999");
+        $response = $this->getJson('/organizations/999');
 
         $response->assertStatus(404)
             ->assertJson([
@@ -300,7 +301,6 @@ class TestCase extends \Orchestra\Testbench\TestCase
         ]);
 
         $response->assertStatus(403);
-
 
         $this->assertFalse($member2->hasRole('member', 'organization', $organization->id));
     }
@@ -485,7 +485,7 @@ class TestCase extends \Orchestra\Testbench\TestCase
         Role::create(['name' => 'admin', 'slug' => 'admin']);
         Role::create(['name' => 'member', 'slug' => 'member']);
         config(['organizations.user_model' => User::class]);
-        config(['organizations.route_middleware' => []]); // does not work. Using bash script in actions file for now
+        // config(['organizations.route_middleware' => []]); // does not work. Using bash script in actions file for now
 
     }
 
@@ -505,7 +505,7 @@ class TestCase extends \Orchestra\Testbench\TestCase
     /**
      * Get package providers.
      *
-     * @param \Illuminate\Foundation\Application $app
+     * @param  \Illuminate\Foundation\Application  $app
      * @return array<int, class-string<\Illuminate\Support\ServiceProvider>>
      */
     protected function getPackageProviders($app)

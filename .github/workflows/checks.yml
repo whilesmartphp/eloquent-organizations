@@ -60,4 +60,3 @@ jobs:
       - name: Clean up SSH key
         if: always()
         run: rm -f ~/.ssh/id_rsa
-# vendor/orchestra/testbench-core/laravel/config/organizations.php
