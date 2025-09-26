@@ -485,6 +485,8 @@ class TestCase extends \Orchestra\Testbench\TestCase
         Role::create(['name' => 'admin', 'slug' => 'admin']);
         Role::create(['name' => 'member', 'slug' => 'member']);
         config(['organizations.user_model' => User::class]);
+        config(['organizations.route_middleware' => []]); // does not work. Using bash script in actions file for now
+
     }
 
     /**

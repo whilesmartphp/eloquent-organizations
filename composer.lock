@@ -6110,12 +6110,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/whilesmartphp/eloquent-roles.git",
-                "reference": "460d92f92d00e5a6ad8ebfd0fa2ce12888556862"
+                "reference": "df0e0d36103b672058e47dfff035c21c7471145f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/whilesmartphp/eloquent-roles/zipball/460d92f92d00e5a6ad8ebfd0fa2ce12888556862",
-                "reference": "460d92f92d00e5a6ad8ebfd0fa2ce12888556862",
+                "url": "https://api.github.com/repos/whilesmartphp/eloquent-roles/zipball/df0e0d36103b672058e47dfff035c21c7471145f",
+                "reference": "df0e0d36103b672058e47dfff035c21c7471145f",
                 "shasum": ""
             },
             "require": {
@@ -6162,7 +6162,7 @@
                 "issues": "https://github.com/whilesmartphp/eloquent-roles/issues",
                 "source": "https://github.com/whilesmartphp/eloquent-roles/tree/main"
             },
-            "time": "2025-08-23T21:52:57+00:00"
+            "time": "2025-09-21T11:11:53+00:00"
         },
         {
             "name": "zircote/swagger-php",
