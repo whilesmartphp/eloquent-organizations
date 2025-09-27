@@ -13,7 +13,9 @@ class Organization extends Model
     use HasFactory, Sluggable;
 
     const TYPE_INDIVIDUAL = 'individual';
+
     const TYPE_ORGANIZATION = 'organization';
+
     protected $fillable = [
         'name',
         'slug',
@@ -27,6 +29,7 @@ class Organization extends Model
         'owner_id',
         'is_active',
     ];
+
     protected $casts = [
         'is_active' => 'boolean',
         'created_at' => 'datetime',
@@ -47,7 +50,7 @@ class Organization extends Model
                 'maxLength' => null,
                 'maxLengthKeepWords' => true,
                 'slugEngineOptions' => [],
-                'reserved'=>null,
+                'reserved' => null,
                 'unique' => true,
                 'includeTrashed' => false,
             ],

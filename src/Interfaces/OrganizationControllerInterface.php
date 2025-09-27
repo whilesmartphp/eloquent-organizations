@@ -6,7 +6,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
 
-
 #[OA\Schema(
     schema: 'Organization',
     properties: [
@@ -460,5 +459,4 @@ interface OrganizationControllerInterface
         ]
     )]
     public function update(Request $request, string $id, ?string $workspaceId = null): JsonResponse;
-
 }
