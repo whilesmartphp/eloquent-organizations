@@ -1,6 +1,7 @@
 {
   "name": "whilesmart/eloquent-organizations",
   "description": "Organization management package for Laravel applications",
+  "package-version": "1.0.0",
   "keywords": [
     "laravel",
     "organization",
