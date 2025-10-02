@@ -23,9 +23,9 @@ class OrganizationController extends ApiController implements OrganizationContro
 
             // Check workspace access if workspace package is available
             if (class_exists('Whilesmart\\Workspaces\\Models\\Workspace')) {
-                if (!auth()->user()->hasRole('workspace-member', 'Whilesmart\\Workspaces\\Models\\Workspace', $workspaceId) &&
-                    !auth()->user()->hasRole('workspace-owner', 'Whilesmart\\Workspaces\\Models\\Workspace', $workspaceId) &&
-                    !auth()->user()->hasRole('workspace-admin', 'Whilesmart\\Workspaces\\Models\\Workspace', $workspaceId)) {
+                if (! auth()->user()->hasRole('workspace-member', 'Whilesmart\\Workspaces\\Models\\Workspace', $workspaceId) &&
+                    ! auth()->user()->hasRole('workspace-owner', 'Whilesmart\\Workspaces\\Models\\Workspace', $workspaceId) &&
+                    ! auth()->user()->hasRole('workspace-admin', 'Whilesmart\\Workspaces\\Models\\Workspace', $workspaceId)) {
                     return $this->failure('Unauthorized', 403);
                 }
             }
@@ -62,9 +62,9 @@ class OrganizationController extends ApiController implements OrganizationContro
         if ($workspaceId && config('organizations.workspace_scoped', true)) {
             // Check workspace access if workspace package is available
             if (class_exists('Whilesmart\\Workspaces\\Models\\Workspace')) {
-                if (!auth()->user()->hasRole('workspace-member', 'Whilesmart\\Workspaces\\Models\\Workspace', $workspaceId) &&
-                    !auth()->user()->hasRole('workspace-owner', 'Whilesmart\\Workspaces\\Models\\Workspace', $workspaceId) &&
-                    !auth()->user()->hasRole('workspace-admin', 'Whilesmart\\Workspaces\\Models\\Workspace', $workspaceId)) {
+                if (! auth()->user()->hasRole('workspace-member', 'Whilesmart\\Workspaces\\Models\\Workspace', $workspaceId) &&
+                    ! auth()->user()->hasRole('workspace-owner', 'Whilesmart\\Workspaces\\Models\\Workspace', $workspaceId) &&
+                    ! auth()->user()->hasRole('workspace-admin', 'Whilesmart\\Workspaces\\Models\\Workspace', $workspaceId)) {
                     return $this->failure('Unauthorized', 403);
                 }
             }
@@ -79,7 +79,7 @@ class OrganizationController extends ApiController implements OrganizationContro
             'website' => $request->website,
             'owner_type' => get_class($user),
             'owner_id' => $user->id,
-            'slug' => Str::slug($request->name)
+            'slug' => Str::slug($request->name),
 
         ];
 
@@ -95,7 +95,7 @@ class OrganizationController extends ApiController implements OrganizationContro
         $organization = Organization::create($organizationData);
         // assign this user the owner role
 
-         $user->assignRole("owner", "organization", $organization->id);
+        $user->assignRole('owner', 'organization', $organization->id);
 
         $organization->refresh();
         OrganizationCreatedEvent::dispatch($organization);
@@ -190,6 +190,7 @@ class OrganizationController extends ApiController implements OrganizationContro
                     ->where('context_id', $id)->pluck('assignable_id')->toArray();
 
                 $members = config('organizations.user_model')::whereIn('id', $member_ids)->get();
+
                 return $this->success($members);
 
             } else {
@@ -245,7 +246,6 @@ class OrganizationController extends ApiController implements OrganizationContro
         }
     }
 
-
     public function update(Request $request, string $id, ?string $workspaceId = null): JsonResponse
     {
         $validator = Validator::make($request->all(), [
@@ -267,9 +267,9 @@ class OrganizationController extends ApiController implements OrganizationContro
         if ($workspaceId && config('organizations.workspace_scoped', true)) {
             // Check workspace access if workspace package is available
             if (class_exists('Whilesmart\\Workspaces\\Models\\Workspace')) {
-                if (!auth()->user()->hasRole('workspace-member', 'Whilesmart\\Workspaces\\Models\\Workspace', $workspaceId) &&
-                    !auth()->user()->hasRole('workspace-owner', 'Whilesmart\\Workspaces\\Models\\Workspace', $workspaceId) &&
-                    !auth()->user()->hasRole('workspace-admin', 'Whilesmart\\Workspaces\\Models\\Workspace', $workspaceId)) {
+                if (! auth()->user()->hasRole('workspace-member', 'Whilesmart\\Workspaces\\Models\\Workspace', $workspaceId) &&
+                    ! auth()->user()->hasRole('workspace-owner', 'Whilesmart\\Workspaces\\Models\\Workspace', $workspaceId) &&
+                    ! auth()->user()->hasRole('workspace-admin', 'Whilesmart\\Workspaces\\Models\\Workspace', $workspaceId)) {
                     return $this->failure('Unauthorized', 403);
                 }
             }
@@ -303,5 +303,4 @@ class OrganizationController extends ApiController implements OrganizationContro
             return $this->failure('Unauthorized', 403);
         }
     }
-
 }

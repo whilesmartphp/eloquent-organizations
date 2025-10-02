@@ -11,7 +11,7 @@ use Whilesmart\Roles\Traits\HasRoles;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Workbench\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, HasRoles, Notifiable;
 
     /**
      * The attributes that are mass assignable.
