@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "24cde150ba2701954574a0193f4bcde7",
+    "content-hash": "d434db07d5dc9661cf78de75178beae2",
     "packages": [
         {
             "name": "brick/math",
@@ -6105,6 +6105,57 @@
             "time": "2022-06-03T18:03:27+00:00"
         },
         {
+            "name": "whilesmart/eloquent-owner-access",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/whilesmartphp/eloquent-owner-access.git",
+                "reference": "3edbda3296eca3bbb141b7f8368fd482308677b0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/whilesmartphp/eloquent-owner-access/zipball/3edbda3296eca3bbb141b7f8368fd482308677b0",
+                "reference": "3edbda3296eca3bbb141b7f8368fd482308677b0",
+                "shasum": ""
+            },
+            "require": {
+                "laravel/framework": "^11.0|^12.0",
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "laravel/pint": "^1.22",
+                "orchestra/testbench": "^9.0|^10.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Whilesmart\\OwnerAccess\\OwnerAccessServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Whilesmart\\OwnerAccess\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Whilesmart Team"
+                }
+            ],
+            "description": "Pluggable polymorphic owner authorization for Laravel packages with owner_type/owner_id columns. Lets host apps decide who can see and modify owner-scoped records without coupling the underlying packages to a specific tenancy model.",
+            "support": {
+                "issues": "https://github.com/whilesmartphp/eloquent-owner-access/issues",
+                "source": "https://github.com/whilesmartphp/eloquent-owner-access/tree/v1.0.0"
+            },
+            "time": "2026-06-10T17:45:50+00:00"
+        },
+        {
             "name": "whilesmart/eloquent-roles",
             "version": "dev-main",
             "source": {
@@ -9107,5 +9158,5 @@
         "php": "^8.2"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }

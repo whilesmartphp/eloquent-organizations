@@ -10,10 +10,13 @@ use Whilesmart\Organizations\Events\OrganizationCreatedEvent;
 use Whilesmart\Organizations\Events\OrganizationUpdatedEvent;
 use Whilesmart\Organizations\Interfaces\OrganizationControllerInterface;
 use Whilesmart\Organizations\Models\Organization;
+use Whilesmart\OwnerAccess\Concerns\AuthorizesOwnerController;
 use Whilesmart\Roles\Models\RoleAssignment;
 
 class OrganizationController extends ApiController implements OrganizationControllerInterface
 {
+    use AuthorizesOwnerController;
+
     public function index(Request $request, ?string $workspaceId = null): JsonResponse
     {
         $query = Organization::query();
@@ -33,6 +36,10 @@ class OrganizationController extends ApiController implements OrganizationContro
 
         $user = $request->user();
         $organization_ids = $user->roleAssignments()->where('context_type', 'organization')->pluck('context_id')->toArray();
+
+        // Defer additional owner-based scoping to the host application's
+        // OwnerAuthorizer (no-op by default via AllowAllAuthorizer).
+        $this->scopeAccessibleOwners($query, $user);
 
         $per_page = $request->get('per_page', 10);
         $organizations = $query->wherein('id', $organization_ids)->paginate($per_page);

@@ -1,7 +1,7 @@
 {
   "name": "whilesmart/eloquent-organizations",
   "description": "Organization management package for Laravel applications",
-  "package-version": "1.0.0",
+  "package-version": "1.1.0",
   "keywords": [
     "laravel",
     "organization",
@@ -19,6 +19,7 @@
     "php": "^8.2",
     "laravel/framework": "^11.0|^12.0",
     "whilesmart/eloquent-roles": "dev-main",
+    "whilesmart/eloquent-owner-access": "^1.0",
     "cviebrock/eloquent-sluggable": "^12.0",
     "zircote/swagger-php": "^5.0"
   },
