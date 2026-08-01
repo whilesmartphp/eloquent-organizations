@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Orchestra\Testbench\Attributes\WithMigration;
 use Whilesmart\Organizations\Events\OrganizationCreatedEvent;
+use Whilesmart\Organizations\Events\OrganizationDeletedEvent;
 use Whilesmart\Organizations\Events\OrganizationUpdatedEvent;
 use Whilesmart\Organizations\Models\Organization;
 use Whilesmart\Roles\Models\Role;
@@ -200,6 +201,8 @@ class TestCase extends \Orchestra\Testbench\TestCase
 
     public function test_delete_organization()
     {
+        Event::fake();
+
         $user = $this->createUser();
         $this->actingAs($user);
 
@@ -217,6 +220,8 @@ class TestCase extends \Orchestra\Testbench\TestCase
         $this->assertDatabaseMissing('organizations', [
             'id' => $organization->id,
         ]);
+
+        Event::assertDispatched(OrganizationDeletedEvent::class);
     }
 
     public function test_admin_can_add_member_to_organization()
@@ -485,8 +490,11 @@ class TestCase extends \Orchestra\Testbench\TestCase
         Role::create(['name' => 'admin', 'slug' => 'admin']);
         Role::create(['name' => 'member', 'slug' => 'member']);
         config(['organizations.user_model' => User::class]);
-        // config(['organizations.route_middleware' => []]); // does not work. Using bash script in actions file for now
+    }
 
+    protected function getEnvironmentSetUp($app): void
+    {
+        $app['config']->set('organizations.route_middleware', []);
     }
 
     /**
@@ -513,6 +521,7 @@ class TestCase extends \Orchestra\Testbench\TestCase
         return [
             'Whilesmart\OwnerAccess\OwnerAccessServiceProvider',
             'Whilesmart\Organizations\OrganizationsServiceProvider',
+            'Whilesmart\Roles\RolesServiceProvider',
         ];
     }
 }
