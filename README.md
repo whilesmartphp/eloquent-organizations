@@ -32,13 +32,24 @@ Optionally publish the configuration file:
 php artisan vendor:publish --tag="organizations-config"
 ```
 
-### Publish Routes
+### Customize Routes
 
-To customize the API routes:
+Applications can keep package-owned routes while replacing only the behavior they need:
 
-```bash
-php artisan vendor:publish --tag="organizations-routes"
+```php
+'controller' => \App\Http\Controllers\OrganizationController::class,
+'model' => \App\Models\Organization::class,
+'resource' => \App\Http\Resources\OrganizationResource::class,
+'response_formatter' => \App\Http\Responses\OrganizationResponseFormatter::class,
+'route_actions' => ['index', 'store', 'show'],
+'route_write_middleware' => ['workspace.write'],
+'register_workspace_routes' => false,
+'register_member_routes' => false,
 ```
+
+The custom model and resource extend their package defaults. The response formatter implements
+the package contract. The custom controller remains the final escape hatch. Write middleware
+applies to create, update, delete, and member write routes that remain enabled.
 
 ## Usage
 
@@ -146,4 +157,3 @@ return [
 ## License
 
 The MIT License (MIT).
-
