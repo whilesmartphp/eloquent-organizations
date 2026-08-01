@@ -7,8 +7,12 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Whilesmart\Organizations\Concerns\RunsOrganizationHooks;
+use Whilesmart\Organizations\Enums\OrganizationAction;
 use Whilesmart\Organizations\Events\OrganizationCreatedEvent;
 use Whilesmart\Organizations\Events\OrganizationDeletedEvent;
+use Whilesmart\Organizations\Events\OrganizationMemberAddedEvent;
+use Whilesmart\Organizations\Events\OrganizationMemberRemovedEvent;
 use Whilesmart\Organizations\Events\OrganizationUpdatedEvent;
 use Whilesmart\Organizations\Interfaces\OrganizationControllerInterface;
 use Whilesmart\Organizations\Models\Organization;
@@ -17,9 +21,20 @@ use Whilesmart\Roles\Models\RoleAssignment;
 
 class OrganizationController extends ApiController implements OrganizationControllerInterface
 {
-    use AuthorizesOwnerController;
+    use AuthorizesOwnerController, RunsOrganizationHooks;
 
     public function index(Request $request, ?string $workspaceId = null): JsonResponse
+    {
+        $request = $this->runBeforeHooks($request, OrganizationAction::INDEX);
+
+        return $this->runAfterHooks(
+            $request,
+            $this->indexResponse($request, $workspaceId),
+            OrganizationAction::INDEX,
+        );
+    }
+
+    private function indexResponse(Request $request, ?string $workspaceId = null): JsonResponse
     {
         $model = $this->model();
         $query = $model::query();
@@ -51,6 +66,17 @@ class OrganizationController extends ApiController implements OrganizationContro
     }
 
     public function store(Request $request, ?string $workspaceId = null): JsonResponse
+    {
+        $request = $this->runBeforeHooks($request, OrganizationAction::STORE);
+
+        return $this->runAfterHooks(
+            $request,
+            $this->storeResponse($request, $workspaceId),
+            OrganizationAction::STORE,
+        );
+    }
+
+    private function storeResponse(Request $request, ?string $workspaceId = null): JsonResponse
     {
         $user = $request->user();
         $validator = Validator::make($request->all(), [
@@ -117,6 +143,13 @@ class OrganizationController extends ApiController implements OrganizationContro
 
     public function show(Request $request, string $id): JsonResponse
     {
+        $request = $this->runBeforeHooks($request, OrganizationAction::SHOW);
+
+        return $this->runAfterHooks($request, $this->showResponse($request, $id), OrganizationAction::SHOW);
+    }
+
+    private function showResponse(Request $request, string $id): JsonResponse
+    {
         $model = $this->model();
         $organization = $model::find($id);
         if ($organization) {
@@ -133,6 +166,13 @@ class OrganizationController extends ApiController implements OrganizationContro
     }
 
     public function destroy(Request $request, string $id): JsonResponse
+    {
+        $request = $this->runBeforeHooks($request, OrganizationAction::DESTROY);
+
+        return $this->runAfterHooks($request, $this->destroyResponse($request, $id), OrganizationAction::DESTROY);
+    }
+
+    private function destroyResponse(Request $request, string $id): JsonResponse
     {
 
         $model = $this->model();
@@ -155,6 +195,13 @@ class OrganizationController extends ApiController implements OrganizationContro
 
     public function addMember(Request $request, string $id): JsonResponse
     {
+        $request = $this->runBeforeHooks($request, OrganizationAction::ADD_MEMBER);
+
+        return $this->runAfterHooks($request, $this->addMemberResponse($request, $id), OrganizationAction::ADD_MEMBER);
+    }
+
+    private function addMemberResponse(Request $request, string $id): JsonResponse
+    {
         $data = $request->validate([
             'email' => 'required',
             'role' => 'nullable|string|in:member,admin',
@@ -173,7 +220,9 @@ class OrganizationController extends ApiController implements OrganizationContro
                     if ($user_to_invite->hasRole('member', 'organization', $id) || $user_to_invite->hasRole('admin', 'organization', $id)) {
                         return $this->failure('This person has already been invited to this organization.', 400);
                     } else {
-                        $user_to_invite->assignRole($data['role'], 'organization', $id);
+                        $role = $data['role'] ?? 'member';
+                        $user_to_invite->assignRole($role, 'organization', $id);
+                        OrganizationMemberAddedEvent::dispatch($organization, $user_to_invite, $role);
 
                         // todo: Send a notification or email to this user.
                         return $this->success(message: 'Member Added');
@@ -191,6 +240,13 @@ class OrganizationController extends ApiController implements OrganizationContro
     }
 
     public function getMembers(Request $request, string $id): JsonResponse
+    {
+        $request = $this->runBeforeHooks($request, OrganizationAction::GET_MEMBERS);
+
+        return $this->runAfterHooks($request, $this->getMembersResponse($request, $id), OrganizationAction::GET_MEMBERS);
+    }
+
+    private function getMembersResponse(Request $request, string $id): JsonResponse
     {
 
         $model = $this->model();
@@ -220,6 +276,17 @@ class OrganizationController extends ApiController implements OrganizationContro
 
     public function removeMember(Request $request, string $id, $member_id): JsonResponse
     {
+        $request = $this->runBeforeHooks($request, OrganizationAction::REMOVE_MEMBER);
+
+        return $this->runAfterHooks(
+            $request,
+            $this->removeMemberResponse($request, $id, $member_id),
+            OrganizationAction::REMOVE_MEMBER,
+        );
+    }
+
+    private function removeMemberResponse(Request $request, string $id, $member_id): JsonResponse
+    {
         $model = $this->model();
         $organization = $model::find($id);
         if ($organization) {
@@ -234,17 +301,21 @@ class OrganizationController extends ApiController implements OrganizationContro
                         return $this->failure('You cannot remove this member from this organization.', 403);
                     }
 
-                    if ($member->hasRole('member', 'organization', $id) || $user->hasRole('admin', 'organization', $id)) {
+                    if ($member->hasRole('member', 'organization', $id) || $member->hasRole('admin', 'organization', $id)) {
                         // ensure user is not trying to remove himself
                         if ($user->id == $member->id) {
                             return $this->failure(message: "You can't remove yourself");
                         }
 
                         if ($member->hasRole('member', 'organization', $id)) {
+                            $role = 'member';
                             $member->removeRole('member', 'organization', $id);
                         } else {
+                            $role = 'admin';
                             $member->removeRole('admin', 'organization', $id);
                         }
+
+                        OrganizationMemberRemovedEvent::dispatch($organization, $member, $role);
 
                         // todo: Send a notification or email to this user.
                         return $this->success(message: 'Member Deleted');
@@ -264,6 +335,17 @@ class OrganizationController extends ApiController implements OrganizationContro
     }
 
     public function update(Request $request, string $id, ?string $workspaceId = null): JsonResponse
+    {
+        $request = $this->runBeforeHooks($request, OrganizationAction::UPDATE);
+
+        return $this->runAfterHooks(
+            $request,
+            $this->updateResponse($request, $id, $workspaceId),
+            OrganizationAction::UPDATE,
+        );
+    }
+
+    private function updateResponse(Request $request, string $id, ?string $workspaceId = null): JsonResponse
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',

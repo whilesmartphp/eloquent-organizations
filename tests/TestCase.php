@@ -2,16 +2,47 @@
 
 use Faker\Factory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Orchestra\Testbench\Attributes\WithMigration;
+use Whilesmart\Organizations\Contracts\OrganizationHook;
+use Whilesmart\Organizations\Enums\OrganizationAction;
 use Whilesmart\Organizations\Events\OrganizationCreatedEvent;
 use Whilesmart\Organizations\Events\OrganizationDeletedEvent;
+use Whilesmart\Organizations\Events\OrganizationMemberAddedEvent;
+use Whilesmart\Organizations\Events\OrganizationMemberRemovedEvent;
 use Whilesmart\Organizations\Events\OrganizationUpdatedEvent;
 use Whilesmart\Organizations\Models\Organization;
 use Whilesmart\Roles\Models\Role;
 use Workbench\App\Models\User;
+
+class TestOrganizationHook implements OrganizationHook
+{
+    public function before(Request $request, OrganizationAction $action): Request
+    {
+        if ($action === OrganizationAction::STORE) {
+            $request->merge([
+                'name' => 'Hooked Organization',
+                'type' => 'organization',
+                'email' => 'hooked@example.com',
+            ]);
+        }
+
+        return $request;
+    }
+
+    public function after(Request $request, JsonResponse $response, OrganizationAction $action): JsonResponse
+    {
+        $data = $response->getData(true);
+        $data['hook_action'] = $action->value;
+        $response->setData($data);
+
+        return $response;
+    }
+}
 
 #[WithMigration]
 class TestCase extends \Orchestra\Testbench\TestCase
@@ -111,6 +142,19 @@ class TestCase extends \Orchestra\Testbench\TestCase
                 'success' => false,
                 'message' => 'The given data was invalid.',
             ]);
+    }
+
+    public function test_hooks_transform_the_request_before_validation_and_the_final_response()
+    {
+        config()->set('organizations.hooks', [TestOrganizationHook::class]);
+
+        $user = $this->createUser();
+        $this->actingAs($user);
+
+        $this->postJson('/organizations', [])
+            ->assertCreated()
+            ->assertJsonPath('data.name', 'Hooked Organization')
+            ->assertJsonPath('hook_action', OrganizationAction::STORE->value);
     }
 
     public function test_show_organization()
@@ -259,6 +303,8 @@ class TestCase extends \Orchestra\Testbench\TestCase
 
     public function test_owner_can_add_member_to_organization()
     {
+        Event::fake();
+
         $owner = $this->createUser();
         $this->actingAs($owner);
 
@@ -281,10 +327,40 @@ class TestCase extends \Orchestra\Testbench\TestCase
             ]);
 
         $this->assertTrue($member->hasRole('member', 'organization', $organization->id));
+        Event::assertDispatched(
+            OrganizationMemberAddedEvent::class,
+            fn (OrganizationMemberAddedEvent $event): bool => $event->organization->is($organization)
+                && $event->member->is($member)
+                && $event->role === 'member',
+        );
+    }
+
+    public function test_member_role_defaults_to_member()
+    {
+        Event::fake();
+
+        $owner = $this->createUser();
+        $organization = $this->createOrganization($owner);
+        $owner->assignRole('owner', 'organization', $organization->id);
+        $member = $this->createUser(['email' => 'default-member@example.com']);
+
+        $this->actingAs($owner)
+            ->postJson("/organizations/{$organization->id}/members", [
+                'email' => $member->email,
+            ])
+            ->assertOk();
+
+        $this->assertTrue($member->hasRole('member', 'organization', $organization->id));
+        Event::assertDispatched(
+            OrganizationMemberAddedEvent::class,
+            fn (OrganizationMemberAddedEvent $event): bool => $event->role === 'member',
+        );
     }
 
     public function test_member_and_non_member_can_not_add_another_member_to_organization()
     {
+        Event::fake();
+
         $owner = $this->createUser();
 
         $organization = $this->createOrganization($owner);
@@ -308,10 +384,13 @@ class TestCase extends \Orchestra\Testbench\TestCase
         $response->assertStatus(403);
 
         $this->assertFalse($member2->hasRole('member', 'organization', $organization->id));
+        Event::assertNotDispatched(OrganizationMemberAddedEvent::class);
     }
 
     public function test_owner_can_remove_member_from_organization()
     {
+        Event::fake();
+
         $owner = $this->createUser();
         $this->actingAs($owner);
 
@@ -332,6 +411,12 @@ class TestCase extends \Orchestra\Testbench\TestCase
             ]);
 
         $this->assertFalse($member->hasRole('member', 'organization', $organization->id));
+        Event::assertDispatched(
+            OrganizationMemberRemovedEvent::class,
+            fn (OrganizationMemberRemovedEvent $event): bool => $event->organization->is($organization)
+                && $event->member->is($member)
+                && $event->role === 'member',
+        );
     }
 
     public function test_admin_can_remove_member_from_organization()
@@ -366,6 +451,8 @@ class TestCase extends \Orchestra\Testbench\TestCase
 
     public function test_member_and_non_member_can_not_remove_member_from_organization()
     {
+        Event::fake();
+
         $owner = $this->createUser();
 
         $organization = $this->createOrganization($owner);
@@ -387,6 +474,25 @@ class TestCase extends \Orchestra\Testbench\TestCase
         $response->assertStatus(403);
 
         $this->assertTrue($member2->hasRole('member', 'organization', $organization->id));
+        Event::assertNotDispatched(OrganizationMemberRemovedEvent::class);
+    }
+
+    public function test_admin_can_not_remove_a_user_without_an_organization_role()
+    {
+        Event::fake();
+
+        $owner = $this->createUser();
+        $organization = $this->createOrganization($owner);
+        $owner->assignRole('owner', 'organization', $organization->id);
+        $admin = $this->createUser(['email' => 'removing-admin@example.com']);
+        $admin->assignRole('admin', 'organization', $organization->id);
+        $unrelatedUser = $this->createUser(['email' => 'unrelated@example.com']);
+
+        $this->actingAs($admin)
+            ->deleteJson("/organizations/{$organization->id}/members/{$unrelatedUser->id}")
+            ->assertStatus(400);
+
+        Event::assertNotDispatched(OrganizationMemberRemovedEvent::class);
     }
 
     public function test_owner_get_list_of_members_in_organization()
