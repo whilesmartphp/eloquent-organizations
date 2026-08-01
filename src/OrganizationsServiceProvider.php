@@ -4,12 +4,18 @@ namespace Whilesmart\Organizations;
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Whilesmart\Organizations\Contracts\ResponseFormatter;
 
 class OrganizationsServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
         $this->mergeConfigFrom(__DIR__.'/../config/organizations.php', 'organizations');
+
+        $this->app->bind(
+            ResponseFormatter::class,
+            fn ($app): ResponseFormatter => $app->make(config('organizations.response_formatter')),
+        );
     }
 
     public function boot(): void

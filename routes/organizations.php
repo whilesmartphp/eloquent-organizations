@@ -1,26 +1,27 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Whilesmart\Organizations\Http\Controllers\OrganizationController;
 
-/*
-|--------------------------------------------------------------------------
-| Organizations API Routes
-|--------------------------------------------------------------------------
-|
-| Here are the API routes for organization management. These routes are
-| automatically registered by the OrganizationsServiceProvider.
-|
-*/
+$controller = config('organizations.controller');
+$writeMiddleware = config('organizations.route_write_middleware', []);
 
-// Organization Management (workspace-scoped if enabled)
-Route::get('/workspaces/{workspaceId}/organizations', [OrganizationController::class, 'index']);
-Route::post('/workspaces/{workspaceId}/organizations', [OrganizationController::class, 'store']);
+if (config('organizations.register_workspace_routes', true)) {
+    Route::get('/workspaces/{workspaceId}/organizations', [$controller, 'index']);
+    Route::post('/workspaces/{workspaceId}/organizations', [$controller, 'store'])
+        ->middleware($writeMiddleware);
+}
 
-// Organization Management (standalone routes)
-Route::apiResource('/organizations', OrganizationController::class);
+$routes = Route::apiResource('/organizations', $controller)
+    ->only(config('organizations.route_actions'));
 
-// organization members
-Route::get('/organizations/{id}/members', [OrganizationController::class, 'getMembers']);
-Route::post('/organizations/{id}/members', [OrganizationController::class, 'addMember']);
-Route::delete('/organizations/{id}/members/{member_id}', [OrganizationController::class, 'removeMember']);
+if ($writeMiddleware !== []) {
+    $routes->middlewareFor(['store', 'update', 'destroy'], $writeMiddleware);
+}
+
+if (config('organizations.register_member_routes', true)) {
+    Route::get('/organizations/{id}/members', [$controller, 'getMembers']);
+    Route::post('/organizations/{id}/members', [$controller, 'addMember'])
+        ->middleware($writeMiddleware);
+    Route::delete('/organizations/{id}/members/{member_id}', [$controller, 'removeMember'])
+        ->middleware($writeMiddleware);
+}

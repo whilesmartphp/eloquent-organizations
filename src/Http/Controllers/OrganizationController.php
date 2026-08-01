@@ -4,9 +4,11 @@ namespace Whilesmart\Organizations\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Whilesmart\Organizations\Events\OrganizationCreatedEvent;
+use Whilesmart\Organizations\Events\OrganizationDeletedEvent;
 use Whilesmart\Organizations\Events\OrganizationUpdatedEvent;
 use Whilesmart\Organizations\Interfaces\OrganizationControllerInterface;
 use Whilesmart\Organizations\Models\Organization;
@@ -19,7 +21,8 @@ class OrganizationController extends ApiController implements OrganizationContro
 
     public function index(Request $request, ?string $workspaceId = null): JsonResponse
     {
-        $query = Organization::query();
+        $model = $this->model();
+        $query = $model::query();
 
         if ($workspaceId && config('organizations.workspace_scoped', true)) {
             $query->where('workspace_id', $workspaceId);
@@ -44,7 +47,7 @@ class OrganizationController extends ApiController implements OrganizationContro
         $per_page = $request->get('per_page', 10);
         $organizations = $query->wherein('id', $organization_ids)->paginate($per_page);
 
-        return $this->success($organizations);
+        return $this->success($this->resourcePaginator($organizations, $request));
     }
 
     public function store(Request $request, ?string $workspaceId = null): JsonResponse
@@ -94,12 +97,13 @@ class OrganizationController extends ApiController implements OrganizationContro
             $organizationData['workspace_id'] = $workspaceId;
         }
 
-        $organization = Organization::where('owner_type', config('organizations.user_model'))->where('owner_id', $user->id)->where('name', $request->get('name'))->first();
+        $model = $this->model();
+        $organization = $model::where('owner_type', config('organizations.user_model'))->where('owner_id', $user->id)->where('name', $request->get('name'))->first();
         if ($organization) {
             return $this->failure('Organization name already exists.', 400);
         }
 
-        $organization = Organization::create($organizationData);
+        $organization = $model::create($organizationData);
         // assign this user the owner role
 
         $user->assignRole('owner', 'organization', $organization->id);
@@ -107,18 +111,19 @@ class OrganizationController extends ApiController implements OrganizationContro
         $organization->refresh();
         OrganizationCreatedEvent::dispatch($organization);
 
-        return $this->success($organization, 'Organization Created', 201);
+        return $this->success($this->resource($organization, $request), 'Organization Created', 201);
 
     }
 
     public function show(Request $request, string $id): JsonResponse
     {
-        $organization = Organization::find($id);
+        $model = $this->model();
+        $organization = $model::find($id);
         if ($organization) {
             $user = $request->user();
             // check if I am a member of this organization
             if ($user->hasRole('owner', 'organization', $id) || $user->hasRole('admin', 'organization', $id) || $user->hasRole('member', 'organization', $id)) {
-                return $this->success($organization);
+                return $this->success($this->resource($organization, $request));
             } else {
                 return $this->failure('You are not authorized to access this resource.', 403);
             }
@@ -130,12 +135,14 @@ class OrganizationController extends ApiController implements OrganizationContro
     public function destroy(Request $request, string $id): JsonResponse
     {
 
-        $organization = Organization::find($id);
+        $model = $this->model();
+        $organization = $model::find($id);
         if ($organization) {
             $user = $request->user();
             // check if I am the owner of this organization
             if ($user->hasRole('owner', 'organization', $id)) {
                 $organization->delete();
+                OrganizationDeletedEvent::dispatch($organization);
 
                 return $this->success(null, 'Organization Deleted');
             } else {
@@ -153,7 +160,8 @@ class OrganizationController extends ApiController implements OrganizationContro
             'role' => 'nullable|string|in:member,admin',
         ]);
 
-        $organization = Organization::find($id);
+        $model = $this->model();
+        $organization = $model::find($id);
         if ($organization) {
             $user_to_invite = config('organizations.user_model')::where('email', $data['email'])->first();
             if ($user_to_invite) {
@@ -185,7 +193,8 @@ class OrganizationController extends ApiController implements OrganizationContro
     public function getMembers(Request $request, string $id): JsonResponse
     {
 
-        $organization = Organization::find($id);
+        $model = $this->model();
+        $organization = $model::find($id);
         if ($organization) {
 
             $user = $request->user();
@@ -211,7 +220,8 @@ class OrganizationController extends ApiController implements OrganizationContro
 
     public function removeMember(Request $request, string $id, $member_id): JsonResponse
     {
-        $organization = Organization::find($id);
+        $model = $this->model();
+        $organization = $model::find($id);
         if ($organization) {
             $user = $request->user();
             // check if I am an admin of this organization
@@ -297,17 +307,56 @@ class OrganizationController extends ApiController implements OrganizationContro
                 $organizationData['workspace_id'] = $workspaceId;
             }
 
-            $organization = Organization::find($id);
+            $model = $this->model();
+            $organization = $model::find($id);
             if ($organization) {
                 $organization->update($organizationData);
                 OrganizationUpdatedEvent::dispatch($organization);
 
-                return $this->success($organization, 'Organization Updated', 200);
+                return $this->success($this->resource($organization, $request), 'Organization Updated', 200);
             } else {
                 return $this->failure('Organization not found', 404);
             }
         } else {
             return $this->failure('Unauthorized', 403);
         }
+    }
+
+    private function model(): string
+    {
+        $model = config('organizations.model', Organization::class);
+
+        if (! is_a($model, Organization::class, true)) {
+            throw new \InvalidArgumentException('The configured organization model must extend '.Organization::class.'.');
+        }
+
+        return $model;
+    }
+
+    private function resource(Organization $organization, Request $request): array
+    {
+        $resource = $this->resourceClass();
+
+        return (new $resource($organization))->resolve($request);
+    }
+
+    private function resourcePaginator($organizations, Request $request)
+    {
+        $organizations->setCollection(
+            $organizations->getCollection()->map(fn (Organization $organization) => $this->resource($organization, $request)),
+        );
+
+        return $organizations;
+    }
+
+    private function resourceClass(): string
+    {
+        $resource = config('organizations.resource');
+
+        if (! is_a($resource, JsonResource::class, true)) {
+            throw new \InvalidArgumentException('The configured organization resource must extend '.JsonResource::class.'.');
+        }
+
+        return $resource;
     }
 }
