@@ -30,6 +30,7 @@ return [
     'controller' => OrganizationController::class,
     'resource' => OrganizationResource::class,
     'response_formatter' => DefaultResponseFormatter::class,
+    'hooks' => [],
 
     /*
     |--------------------------------------------------------------------------

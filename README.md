@@ -41,6 +41,7 @@ Applications can keep package-owned routes while replacing only the behavior the
 'model' => \App\Models\Organization::class,
 'resource' => \App\Http\Resources\OrganizationResource::class,
 'response_formatter' => \App\Http\Responses\OrganizationResponseFormatter::class,
+'hooks' => [\App\Organizations\OrganizationHook::class],
 'route_actions' => ['index', 'store', 'show'],
 'route_write_middleware' => ['workspace.write'],
 'register_workspace_routes' => false,
@@ -50,6 +51,14 @@ Applications can keep package-owned routes while replacing only the behavior the
 The custom model and resource extend their package defaults. The response formatter implements
 the package contract. The custom controller remains the final escape hatch. Write middleware
 applies to create, update, delete, and member write routes that remain enabled.
+
+Hooks implement `OrganizationHook`. Their `before` method receives the request before validation,
+and their `after` method receives responses returned by the controller. Both methods receive an
+`OrganizationAction` value identifying the operation. Hooks are resolved through the container.
+
+Successful member role changes dispatch `OrganizationMemberAddedEvent` and
+`OrganizationMemberRemovedEvent`. Each event contains the organization, affected member model,
+and role.
 
 ## Usage
 
