@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d434db07d5dc9661cf78de75178beae2",
+    "content-hash": "bcc45c0beec3b11bbe205fdfd51e6fed",
     "packages": [
         {
             "name": "brick/math",
@@ -6157,27 +6157,29 @@
         },
         {
             "name": "whilesmart/eloquent-roles",
-            "version": "dev-main",
+            "version": "v1.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/whilesmartphp/eloquent-roles.git",
-                "reference": "df0e0d36103b672058e47dfff035c21c7471145f"
+                "reference": "9b4e7e3dc9f700f0883a35da3d7cadb3432791e0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/whilesmartphp/eloquent-roles/zipball/df0e0d36103b672058e47dfff035c21c7471145f",
-                "reference": "df0e0d36103b672058e47dfff035c21c7471145f",
+                "url": "https://api.github.com/repos/whilesmartphp/eloquent-roles/zipball/9b4e7e3dc9f700f0883a35da3d7cadb3432791e0",
+                "reference": "9b4e7e3dc9f700f0883a35da3d7cadb3432791e0",
                 "shasum": ""
             },
             "require": {
+                "cviebrock/eloquent-sluggable": "^12.0",
                 "laravel/framework": "^11.0|^12.0",
                 "php": "^8.2"
             },
             "require-dev": {
+                "fakerphp/faker": "^1.24",
+                "laravel/pint": "^1.25",
                 "orchestra/testbench": "^9.0|^10.0",
                 "phpunit/phpunit": "^10.0|^11.0"
             },
-            "default-branch": true,
             "type": "library",
             "extra": {
                 "laravel": {
@@ -6211,9 +6213,9 @@
             ],
             "support": {
                 "issues": "https://github.com/whilesmartphp/eloquent-roles/issues",
-                "source": "https://github.com/whilesmartphp/eloquent-roles/tree/main"
+                "source": "https://github.com/whilesmartphp/eloquent-roles/tree/v1.0.1"
             },
-            "time": "2025-09-21T11:11:53+00:00"
+            "time": "2026-03-06T10:47:12+00:00"
         },
         {
             "name": "zircote/swagger-php",
@@ -9149,9 +9151,7 @@
     ],
     "aliases": [],
     "minimum-stability": "dev",
-    "stability-flags": {
-        "whilesmart/eloquent-roles": 20
-    },
+    "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

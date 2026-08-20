@@ -1,3 +1,6 @@
+## [1.2.1] - 2026-08-19
+- Depend on a released version of eloquent-roles rather than its main branch, so applications can pin their own version of it
+
 ## [1.2.0] - 2026-08-01
 - Allow applications to configure organization routes, models, resources, responses, and controllers
 - Dispatch the existing organization deleted event after successful deletion
